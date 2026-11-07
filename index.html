@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Safia AI yordamchi — demo</title>
+<style>
+  :root{
+    --bg:#f6ecd9; --bg2:#ead6b0; --card:#fffaf1; --brown:#4a2c17; --brown2:#7a5233;
+    --pink:#e9a9b8; --pink2:#f7dbe2; --gold:#c9a063; --muted:#9b8268; --line:#ecdcc0;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#1b120b;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;color:var(--brown)}
+  .phone{max-width:480px;margin:0 auto;height:100%;background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .demo-tag{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:12px;font-size:10px;letter-spacing:.08em;background:var(--brown);color:#fff;padding:3px 8px;border-radius:20px;z-index:5;opacity:.85}
+
+  /* HOME */
+  .home{flex:1;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 18px) 18px 110px}
+  .brand{font-family:Georgia,"Times New Roman",serif;font-size:34px;font-weight:700;letter-spacing:-.5px}
+  .brand small{display:block;font-family:inherit;font-size:13px;font-weight:400;color:var(--muted);letter-spacing:0}
+  .hello{margin:18px 0 12px;font-size:15px;color:var(--brown2)}
+  .cash{background:linear-gradient(135deg,#5a3720,#8a5d38);color:#fff;border-radius:22px;padding:18px;box-shadow:0 10px 24px rgba(74,44,23,.25)}
+  .cash .row{display:flex;justify-content:space-between;align-items:flex-end}
+  .cash .lbl{font-size:12px;opacity:.8}
+  .cash .val{font-size:28px;font-weight:700;margin-top:2px}
+  .cash .lvl{background:rgba(255,255,255,.18);padding:4px 10px;border-radius:14px;font-size:12px}
+  .qr{margin-top:14px;display:flex;gap:10px}
+  .qr button{flex:1;border:0;border-radius:14px;padding:11px;font-size:14px;font-weight:600;background:#fff;color:var(--brown)}
+  .qr button.ghost{background:rgba(255,255,255,.15);color:#fff}
+  h3{margin:22px 0 10px;font-size:17px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .prod{background:var(--card);border-radius:18px;padding:12px;border:1px solid var(--line)}
+  .prod .em{font-size:34px;height:64px;display:flex;align-items:center;justify-content:center;background:var(--pink2);border-radius:12px}
+  .prod b{display:block;font-size:13px;margin-top:8px;line-height:1.25}
+  .prod span{font-size:13px;color:var(--brown2)}
+  .ai-banner{margin-top:18px;background:var(--card);border:1.5px dashed var(--gold);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:center}
+  .ai-banner .ic{width:46px;height:46px;border-radius:50%;background:var(--pink);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+  .ai-banner p{margin:0;font-size:13px;color:var(--brown2)}
+  .ai-banner b{font-size:15px;color:var(--brown)}
+
+  .tabbar{position:absolute;left:0;right:0;bottom:0;background:rgba(255,250,241,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(env(safe-area-inset-bottom) + 8px)}
+  .tabbar div{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+  .tabbar div i{display:block;font-style:normal;font-size:21px}
+  .tabbar div.on{color:var(--brown);font-weight:600}
+  .fab{position:absolute;right:18px;bottom:calc(env(safe-area-inset-bottom) + 76px);width:62px;height:62px;border-radius:50%;border:0;background:var(--brown);color:#fff;font-size:28px;box-shadow:0 8px 20px rgba(74,44,23,.4);z-index:4}
+  .fab::after{content:"AI";position:absolute;top:-2px;right:-2px;background:var(--pink);color:var(--brown);font-size:10px;font-weight:800;padding:2px 5px;border-radius:8px}
+
+  /* CHAT */
+  .chat{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1);z-index:10}
+  .chat.open{transform:none}
+  .chead{padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;display:flex;align-items:center;gap:10px;background:var(--card);border-bottom:1px solid var(--line)}
+  .chead button{border:0;background:none;font-size:24px;color:var(--brown);padding:4px 8px}
+  .chead .av{width:40px;height:40px;border-radius:50%;background:var(--pink);display:flex;align-items:center;justify-content:center;font-size:21px}
+  .chead .t{flex:1}
+  .chead .t b{display:block;font-size:15px}
+  .chead .t span{font-size:12px;color:var(--muted)}
+  .chead .t span.ok{color:#3c8d4f}
+  .msgs{flex:1;overflow-y:auto;padding:14px 12px 8px;display:flex;flex-direction:column;gap:8px}
+  .m{max-width:84%;padding:10px 13px;border-radius:18px;font-size:15px;line-height:1.4;white-space:normal;word-wrap:break-word;animation:pop .18s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .m.bot{background:var(--card);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:6px}
+  .m.me{background:var(--brown);color:#fff;align-self:flex-end;border-bottom-right-radius:6px}
+  .m ul{margin:6px 0;padding-left:18px}
+  .m p{margin:0 0 6px}.m p:last-child{margin:0}
+  .typing{display:inline-flex;gap:4px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bl 1s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  @keyframes bl{0%,80%,100%{opacity:.3}40%{opacity:1}}
+  .order{align-self:stretch;background:#fff;border:2px solid var(--gold);border-radius:18px;padding:14px;font-size:14px}
+  .order h4{margin:0 0 8px;font-size:15px}
+  .order table{width:100%;border-collapse:collapse}
+  .order td{padding:4px 0;vertical-align:top;border-bottom:1px solid #f1e6d2}
+  .order td:first-child{color:var(--muted);width:42%}
+  .order .st{margin-top:10px;background:#eaf6ec;color:#2f7a42;border-radius:10px;padding:8px;text-align:center;font-weight:600}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:6px 12px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:none;border:1px solid var(--gold);background:var(--card);color:var(--brown);border-radius:16px;padding:7px 12px;font-size:13px}
+  .inp{display:flex;gap:8px;padding:8px 12px calc(env(safe-area-inset-bottom) + 10px);background:var(--card);border-top:1px solid var(--line)}
+  .inp textarea{flex:1;resize:none;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font:inherit;font-size:16px;max-height:110px;background:#fff;color:var(--brown);outline:none}
+  .inp button{width:44px;height:44px;border-radius:50%;border:0;background:var(--brown);color:#fff;font-size:19px;flex:none;align-self:flex-end}
+  .inp button:disabled{opacity:.4}
+
+  /* SETTINGS */
+  .sheet{position:absolute;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;z-index:20}
+  .sheet.open{display:flex}
+  .sheet .box{background:var(--card);width:100%;border-radius:22px 22px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom) + 20px)}
+  .sheet h4{margin:0 0 6px;font-size:17px}
+  .sheet p{font-size:13px;color:var(--brown2);margin:0 0 12px;line-height:1.4}
+  .sheet input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);font-size:15px;background:#fff;color:var(--brown)}
+  .sheet .btns{display:flex;gap:10px;margin-top:12px}
+  .sheet .btns button{flex:1;padding:12px;border-radius:12px;border:0;font-size:15px;font-weight:600}
+  .sheet .save{background:var(--brown);color:#fff}.sheet .cancel{background:var(--pink2);color:var(--brown)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="demo-tag">DEMO · KONSEPT</div>
+
+  <!-- HOME SCREEN -->
+  <div class="home">
+    <div class="brand">Safia<small>cafe &amp; bakery</small></div>
+    <div class="hello">Assalomu alaykum! 👋</div>
+
+    <div class="cash">
+      <div class="row">
+        <div><div class="lbl">Keshbek balansi</div><div class="val">12 450 so'm</div></div>
+        <div class="lvl">⭐ Gold · 3%</div>
+      </div>
+      <div class="lbl" style="margin-top:8px">🪙 Coins: 340 · Ballar 365 kun amal qiladi</div>
+      <div class="qr"><button>▦ QR-kod</button><button class="ghost">🎁 Sovg'alar</button></div>
+    </div>
+
+    <div class="ai-banner" onclick="openChat()">
+      <div class="ic">🧁</div>
+      <div><b>Yangi! Safia AI yordamchi</b><p>Tort tanlash, filial topish, keshbek va buyurtma — hammasini so'rang. Istalgan tilda.</p></div>
+    </div>
+
+    <h3>Mashhur</h3>
+    <div class="grid">
+      <div class="prod"><div class="em">🎂</div><b>Safia bezatilgan dumaloq tort, 1 kg</b><span>335 000 so'm</span></div>
+      <div class="prod"><div class="em">🍰</div><b>Oreo cheesecake (butun)</b><span>330 000 so'm</span></div>
+      <div class="prod"><div class="em">🎀</div><b>Pink Bento tort</b><span>129 000 so'm</span></div>
+      <div class="prod"><div class="em">🍯</div><b>Chak-chak "To'g'rama"</b><span>55 000 so'm</span></div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="on"><i>🏠</i>Asosiy</div>
+    <div><i>🧾</i>Menyu</div>
+    <div onclick="openChat()"><i>💬</i>AI chat</div>
+    <div><i>📍</i>Filiallar</div>
+    <div><i>👤</i>Profil</div>
+  </div>
+  <button class="fab" onclick="openChat()" aria-label="AI chat">💬</button>
+
+  <!-- CHAT SCREEN -->
+  <div class="chat" id="chat">
+    <div class="chead">
+      <button onclick="closeChat()" aria-label="Orqaga">‹</button>
+      <div class="av">🧁</div>
+      <div class="t"><b>Safia AI yordamchi</b><span id="status">...</span></div>
+      <button onclick="openSettings()" aria-label="Sozlamalar">⚙︎</button>
+    </div>
+    <div class="msgs" id="msgs"></div>
+    <div class="chips" id="chips"></div>
+    <div class="inp">
+      <textarea id="txt" rows="1" placeholder="Xabar yozing..."></textarea>
+      <button id="send" aria-label="Yuborish">➤</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS SHEET -->
+  <div class="sheet" id="sheet">
+    <div class="box">
+      <h4>Gemini API kaliti</h4>
+      <p>Bepul kalitni aistudio.google.com → "Get API key" bo'limidan oling va shu yerga qo'ying. Kalit faqat shu telefonda saqlanadi. Kalitsiz bot oddiy tayyor javoblar bilan ishlaydi.</p>
+      <input id="keyIn" type="password" placeholder="AIza..." autocomplete="off">
+      <div class="btns"><button class="cancel" onclick="closeSettings()">Bekor</button><button class="save" onclick="saveKey()">Saqlash</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1) SOZLAMA: kalitni shu yerga ham yozib qo'ysa bo'ladi.
+   DIQQAT: sahifani internetga ochiq joylasangiz, bu yerga
+   yozilgan kalitni boshqalar ko'rishi mumkin.
+   ========================================================= */
+const GEMINI_KEY = "";
+const MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-2.0-flash"];
+
+/* =========================================================
+   2) BILIMLAR BAZASI — Safia ma'lumotlari.
+   Narxlar ochiq manbalardan olingan, ba'zilari eski bo'lishi
+   mumkin. Hojayinga ko'rsatishdan oldin to'g'rilab qo'ying.
+   ========================================================= */
+const KNOWLEDGE = `
+UMUMIY
+- Safia — O'zbekistondagi qandolatchilik uyi (cafe & bakery), oilaviy biznes, Muhayo Ayupova boshlagan.
+- Call-markaz: +998 78 113 40 40 (har kuni 08:00–23:00).
+- Ilova: App Store va Google Play'da "Safia Cafe & Bakery".
+- Odatiy ish vaqti 08:00–23:00, ko'p filiallar 24 soat (00:00–23:59) ishlaydi.
+- Yetkazib berish: Wolt orqali (Wolt x Safia eksklyuziv mahsulotlar bor).
+
+SODIQLIK DASTURI (KESHBEK VA COINS)
+- Har xariddan 3% gacha keshbek. Kassada ilovadagi QR-kodni skaner qildirish kerak.
+- Ballar 365 kun amal qiladi.
+- Coins yig'ib, sovg'alarga almashtirsa bo'ladi. Darajalar bor, yuqori darajada ko'proq Coins beriladi.
+- Ilovada ro'yxatdan o'tgan yangi mijozga birinchi xaridda bepul kofe.
+- Vaqti-vaqti bilan "ikki baravar keshbek" aksiyalari bo'ladi.
+
+MENYU KATEGORIYALARI
+Dumaloq tortlar, to'rtburchak tortlar, mini tortlar, bento tortlar, cheesecake, rulet, pirog (butun va bo'lak), ekler, makaron, brauni, kapkeyk, tartaletka, sloyka va shirin pishiriqlar, sho'r/to'yimli pishiriqlar, pechene, pryanik, PP (to'g'ri ovqatlanish) va sog'lom desertlar, Safia setlari, kofe, sovuq ichimliklar, non (Breads of Austria), shamlar, merch.
+
+NARXLAR (namuna, aniq narx ilovada):
+- Safia bezatilgan dumaloq tort, 1 kg — 335 000 so'm (oq biskvit, banan, olcha, shokoladli krem, yangi rezavorlar, pushti yoki oq ko'zgu glazur)
+- Oreo cheesecake, butun — 330 000 so'm
+- Pink Bento tort — 129 000 so'm
+- Oreo tort (bo'lak) — 17 900 so'm
+- Mini tort "Fundukli" — 9 500 so'm
+- Chak-chak "To'g'rama" — 55 000 so'm; "Bog'isoq" — 60 000 so'm; "Gazak" — 60 000 so'm
+- "Dumaloq savat" sovg'a to'plami — 995 000 so'm
+- Sosiskali bulochka — 11 000 so'm; yopiq pitsa — 12 000 so'm; karamli rastegay — 7 500 so'm
+- Yangi: olma-dolchinli sloyka, dolchinli pretsel, apelsin tsukatli shokoladli pain, eklerlar
+- Mijozlar ko'p maqtaydi: pista torti, kruassanlar, kofe RAF, morojniyli tort.
+
+TORT BUYURTMASI
+- Maxsus/oldindan buyurtma tortlar uchun bo'lim bor (Yunusobod, 1-tupik Xo'jaobod 12 — oldindan buyurtmalar filiali).
+- Buyurtmaga kerak: ism, telefon, sana va vaqt, tort turi, vazni (kg) yoki necha kishilik, ustiga yozuv, olib ketish filiali yoki yetkazib berish manzili.
+- Taxminiy hisob: 1 kg tort ≈ 6–8 kishiga yetadi.
+- Katering xizmati ham bor (tadbirlar uchun).
+
+FILIALLAR (jami 179 ta: Toshkent, viloyatlar, Samarqand, Buxoro, Andijon, Namangan, Farg'ona, Qo'qon, Qarshi, Termiz, Urganch, Xiva, Nukus, Navoiy, Jizzax, Guliston, Olmaliq, Chirchiq, Angren, Bekobod, Yangiyo'l, shuningdek Qozog'iston: Almati va Chimkent)
+Toshkent, ba'zilari (manzil — tuman — ish vaqti):
+- IT park — Mo'minov ko'ch. 4/4 — 24 soat
+- Do'stlik (Druzhba) — Islom Karimov ko'ch. 8/1 — 24 soat
+- Novza — Bunyodkor shoh ko'ch. 1A — Chilonzor — 24 soat
+- Pionerskaya — Chilonzor 2-mavze, 76 — Chilonzor — 24 soat
+- Gagarin — Chilonzor ko'ch. 55 — Chilonzor — 08:00–24:00
+- Bunyodkor — Chilonzor 17-mavze, 33/1 — Chilonzor — 08:00–23:00
+- Parus — Chilonzor 8-mavze, 20 — Chilonzor — 08:00–23:00
+- Integro Chilonzor — Bunyodkor shoh ko'ch. 52/2 — Chilonzor — 08:00–23:00
+- Dream Park — Chilonzor 4-mavze 1A/7 — Chilonzor — 10:00–23:00
+- Al-Xorazmiy — Al-Xorazmiy ko'ch. 66/7 — Chilonzor — 08:00–23:00
+- Farhod — Chilonzor 12-mavze, 21 — Uchtepa — 08:00–03:00
+- Vatan — Chilonzor 24-mavze 16/1 — Uchtepa — 08:00–23:00
+- Toshkent Siti / Siti Moll — Botir Zokirov ko'ch. 7 — 08:00–24:00
+- Mega Planet — Ahmad Donish ko'ch. 2B — Yunusobod — 24 soat
+- Minor — Osiyo ko'ch. 4 — Yunusobod — 08:00–24:00
+- Shohsaroy — Yunusobod 5-mavze, 26 — Yunusobod — 08:00–23:00
+- Telebashnya — Iftixor ko'ch. 1A — Yunusobod — 08:00–23:00
+- SamPI — Bog'ishamol ko'ch. 260A — Yunusobod — 24 soat
+- Ardus — Qashg'ar massivi 5A — Yunusobod — 08:00–23:00
+- Gvardeyskaya — Yangi Yunusobod ko'ch. 53A — Yunusobod — 08:00–24:00
+- Inha / Ziyolilar — Ziyolilar ko'ch. 9 va Sayram ko'ch. 2/1 — Mirzo Ulug'bek
+- TTZ — Traktorsozlar shaharchasi 2-mavze 53 — Mirzo Ulug'bek — 24 soat
+- Luncharskiy — Shukur Burhonov ko'ch. 22 — Mirzo Ulug'bek — 24 soat
+- Darxon — Oloy massivi 1 — Mirzo Ulug'bek — 08:00–23:00
+- Oqqo'rg'on — Oqqo'rg'on ko'ch. 18 — Mirzo Ulug'bek — 08:00–23:00
+- Medgorodok — Kamarniso 7-tor ko'ch. — Olmazor — 24 soat
+- Sebzor — Sebzor massivi 52A — Olmazor — 08:00–23:00
+- Chorsu — Samarqand Darvoza ko'ch. 1 — 08:00–23:00
+- Ko'kcha — Ko'kcha ko'ch. 38 — Shayxontohur — 08:00–23:00
+- Beltepa — Beltepa ko'ch. — Shayxontohur — 08:00–23:00
+- Shahriston — Amir Temur shoh ko'ch. 118/2 — 08:00–23:00
+- Uch Qahramon — Amir Temur shoh ko'ch. 192 — 08:00–23:00
+- Shota Rustaveli — Rustaveli ko'ch. 69 — 08:00–23:00
+- Okean — Rustaveli ko'ch. 37 — 08:00–24:00
+- Qushbegi — Qushbegi ko'ch. 30B — Yakkasaroy — 08:00–23:00
+- Aeroport — Kichik halqa yo'li — Yakkasaroy — 08:00–23:00; Duty-free — aeroportda — 24 soat
+- Kadisheva — Aviasozlar ko'ch. 9 — Yashnobod — 08:00–23:00
+- Shohimardon — Shohimardon ko'ch. 116 — Yashnobod — 08:00–23:00
+- Fayziobod — Fayziobod ko'ch. 8 — Mirobod — 24 soat
+- Grandmir — Mirobod ko'ch. 21/2 — Mirobod — 24 soat
+- Matonat (Qo'yliq-1) — Qo'yliq 1-mavze 20 — Mirobod — 08:00–23:00
+- Yangi Qo'yliq 5 — Yangi Qo'yliq ko'ch. 41A — 08:00–24:00
+- Sergeli — Birlik ko'ch. 18A — Yangihayot — 24 soat
+- Avtorinok — Yangi Sergeli ko'ch. 6A — Sergeli — 08:00–23:00
+- Qo'rg'ontepa — Qo'rg'ontepa ko'ch. 1A — Yangihayot — 08:00–23:00
+- Hast-Imom — Qorasaroy ko'ch. 5A — 08:00–23:00
+- Bobur — Bobur ko'ch. 87B/1 — 08:00–23:00
+Viloyatlar, ba'zilari: Samarqand (Mirzo Ulug'bek ko'ch. 16A, 24 soat; Gagarin ko'ch., 24 soat), Buxoro (Mustaqillik ko'ch. 19), Andijon (Cho'lpon Shox 5V, 24 soat), Namangan (G'alaba ko'ch. 46, 24 soat), Farg'ona (Ma'rifat ko'ch. 19), Qo'qon (Usmon Nosir 70), Qarshi (Mustaqillik shoh ko'ch. 30, 24 soat), Termiz (Alisher Navoiy 19V), Urganch (Yangi Shovot yo'li 3), Xiva, Nukus (G'arezsizlik 20), Navoiy (Islom Karimov shoh ko'ch. 52A, 24 soat), Jizzax, Guliston, Olmaliq, Chirchiq, Angren, Bekobod, Yangiyo'l, Zangiota, Nazarbek, Qibray, G'azalkent.
+`;
+
+const SYSTEM_PROMPT = `Sen "Safia AI yordamchi"san — Safia cafe & bakery mobil ilovasidagi do'stona yordamchi.
+
+QOIDALAR:
+- Mijoz qaysi tilda yozsa (o'zbek lotin, o'zbek kirill, rus, ingliz, qozoq, turk, tojik va boshqa), AYNAN o'sha tilda javob ber.
+- Qisqa yoz: 1–4 gap yoki qisqa ro'yxat. Telefon ekrani kichik. Mos joyda 1–2 emoji ishlat.
+- Faqat quyidagi BILIMLAR BAZASI asosida javob ber. Bazada yo'q narxni yoki faktni o'ylab topma. Bilmasang, "aniq ma'lumotni ilovaning Menyu bo'limidan yoki +998 78 113 40 40 call-markazdan bilib olsangiz bo'ladi" de.
+- Narxlarni aytganda "taxminan" yoki "ilovada aniq narxni ko'ring" deb qo'sh.
+- MASLAHATLAR: mijozga bayram, tug'ilgan kun, mehmon, kishilar soni, ta'm va byudjetga qarab mos tort yoki desert tavsiya qil. 1 kg ≈ 6–8 kishi. Keshbekni ishlatishni eslatib qo'y.
+- FILIAL: mijoz tuman yoki mo'ljal aytsa, bazadan eng mosini 1–3 tasini manzil va ish vaqti bilan ber.
+- ALLERGIYA: mijoz allergiyasini aytsa, o'sha mahsulot ishlatilmagan variantlarni taklif qil (masalan, tropik mevalarga allergiyada bananli tortlarni emas, shokoladli, Oreo yoki rezavorli variantlarni). Lekin har doim qo'sh: "tarkibni sotuvchidan yoki +998 78 113 40 40 call-markazdan tasdiqlang, chunki ishlab chiqarishda izlari bo'lishi mumkin". Hech qachon "100% xavfsiz" dema.
+- Safia'dan boshqa mavzularda gaplashma, muloyimlik bilan Safia mavzusiga qaytar.
+
+TORT BUYURTMASI:
+- Mijoz tort buyurtma qilmoqchi bo'lsa, quyidagilarni BITTADAN yoki ikkitadan so'rab, yig'ib bor: tort turi, vazni yoki necha kishilik, sana va vaqt, ustidagi yozuv (ixtiyoriy), olib ketish filiali yoki yetkazib berish manzili, ism, telefon.
+- Hammasi yig'ilganda qisqa tasdiq so'zini yoz va javobning OXIRIGA aynan shu formatda blok qo'sh (boshqa hech qayerda ishlatma):
+[[ORDER]]{"tort":"...","vazn":"...","sana":"...","yozuv":"...","olib_ketish":"...","ism":"...","telefon":"...","taxminiy_narx":"..."}[[/ORDER]]
+
+BILIMLAR BAZASI:
+${KNOWLEDGE}`;
+
+/* =========================================================
+   3) ILOVA MANTIG'I
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const msgsEl = $("#msgs"), txt = $("#txt"), sendBtn = $("#send");
+let history = [];   // Gemini formatidagi suhbat
+let busy = false, started = false, workingModel = null;
+
+function store(k, v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k, v);}catch(e){ return null; } }
+let apiKey = GEMINI_KEY || store("safia_gemini_key") || "";
+
+function setStatus(){
+  const s = $("#status");
+  if(apiKey){ s.textContent = "● Onlayn · Gemini AI"; s.className = "ok"; }
+  else { s.textContent = "Oddiy rejim · ⚙︎ da AI kalitini qo'shing"; s.className = ""; }
+}
+
+function openChat(){
+  $("#chat").classList.add("open");
+  if(!started){ started = true; greet(); }
+  setTimeout(()=>txt.focus(), 350);
+}
+function closeChat(){ $("#chat").classList.remove("open"); txt.blur(); }
+function openSettings(){ $("#keyIn").value = apiKey; $("#sheet").classList.add("open"); }
+function closeSettings(){ $("#sheet").classList.remove("open"); }
+function saveKey(){
+  apiKey = $("#keyIn").value.trim(); store("safia_gemini_key", apiKey);
+  workingModel = null; setStatus(); closeSettings();
+  addBot(apiKey ? "✅ AI ulandi! Endi istalgan savolni istalgan tilda bering." : "Oddiy rejimga o'tildi.");
+}
+
+const CHIPS = ["🎂 Tug'ilgan kunga tort maslahat ber","📍 Chilonzorda filial bormi?","🪙 Keshbek qanday ishlaydi?","📝 Tort buyurtma qilmoqchiman","Сколько стоит чизкейк?","Open 24 hours near Yunusabad?"];
+function renderChips(){
+  const c = $("#chips"); c.innerHTML = "";
+  CHIPS.forEach(t => { const b = document.createElement("button"); b.textContent = t; b.onclick = () => send(t.replace(/^[^\wА-Яа-яЁёЎўҚқҒғҲҳ]+\s*/u,"")); c.appendChild(b); });
+}
+
+function esc(s){ return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function md(s){
+  s = esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g,"$1<i>$2</i>");
+  const lines = s.split(/\n/); let out = "", inList = false;
+  for(const l of lines){
+    const m = l.match(/^\s*(?:[-•*]|\d+[.)])\s+(.*)/);
+    if(m){ if(!inList){ out += "<ul>"; inList = true; } out += "<li>"+m[1]+"</li>"; }
+    else { if(inList){ out += "</ul>"; inList = false; } if(l.trim()) out += "<p>"+l+"</p>"; }
+  }
+  if(inList) out += "</ul>";
+  return out;
+}
+function scroll(){ msgsEl.scrollTop = msgsEl.scrollHeight; }
+function addMe(t){ const d = document.createElement("div"); d.className = "m me"; d.textContent = t; msgsEl.appendChild(d); scroll(); }
+function addBot(t){
+  let order = null;
+  const om = t.match(/\[\[ORDER\]\]([\s\S]*?)\[\[\/ORDER\]\]/);
+  if(om){ try{ order = JSON.parse(om[1].trim()); }catch(e){} t = t.replace(om[0], "").trim(); }
+  if(t){ const d = document.createElement("div"); d.className = "m bot"; d.innerHTML = md(t); msgsEl.appendChild(d); }
+  if(order) addOrder(order);
+  scroll();
+}
+function addOrder(o){
+  const L = {tort:"🎂 Tort", vazn:"⚖️ Vazn / kishi", sana:"📅 Sana, vaqt", yozuv:"✍️ Yozuv", olib_ketish:"📍 Olib ketish", ism:"👤 Ism", telefon:"📞 Telefon", taxminiy_narx:"💰 Taxminiy narx"};
+  const d = document.createElement("div"); d.className = "order";
+  const no = "SF-" + Math.floor(100000 + Math.random()*899999);
+  let rows = ""; for(const k in L){ if(o[k]) rows += `<tr><td>${L[k]}</td><td>${esc(String(o[k]))}</td></tr>`; }
+  d.innerHTML = `<h4>🧾 Buyurtma № ${no}</h4><table>${rows}</table><div class="st">✓ Qabul qilindi · menejer tez orada qo'ng'iroq qiladi</div><div style="font-size:11px;color:#9b8268;margin-top:6px;text-align:center">Demo: haqiqiy buyurtma yuborilmadi</div>`;
+  msgsEl.appendChild(d); scroll();
+}
+function typing(on){
+  let t = $("#typing");
+  if(on && !t){ t = document.createElement("div"); t.id = "typing"; t.className = "m bot"; t.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>'; msgsEl.appendChild(t); scroll(); }
+  if(!on && t) t.remove();
+}
+
+function greet(){
+  setStatus(); renderChips();
+  addBot("Assalomu alaykum! Men **Safia AI yordamchi**man 🧁\nTort tanlashda maslahat beraman, eng yaqin filialni topaman, keshbek haqida tushuntiraman va tort buyurtmasini qabul qilaman.\nIstalgan tilda yozing: o'zbekcha, ruscha, inglizcha...");
+}
+
+/* ---------- Gemini ---------- */
+async function askGemini(){
+  const list = workingModel ? [workingModel] : MODELS;
+  let lastErr = "";
+  for(const model of list){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const r = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({
+      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: history,
+      generationConfig: { temperature: 0.6, maxOutputTokens: 900 }
+    })});
+    if(r.ok){
+      const j = await r.json();
+      const out = j?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+      workingModel = model;
+      return out || "Kechirasiz, javob bo'sh qaytdi. Qaytadan urinib ko'ring.";
+    }
+    const e = await r.json().catch(() => ({}));
+    lastErr = (e.error && e.error.message) || ("HTTP " + r.status);
+    if(r.status === 404) continue;  // model topilmadi — keyingisini sinaymiz
+    if(r.status === 400 && /API key/i.test(lastErr)) throw new Error("API kalit noto'g'ri. ⚙︎ ni bosib tekshiring.");
+    if(r.status === 429) throw new Error("Bepul limit tugadi, bir daqiqadan keyin urinib ko'ring.");
+    throw new Error(lastErr);
+  }
+  throw new Error(lastErr);
+}
+
+/* ---------- Kalitsiz oddiy rejim ---------- */
+let offlineOrder = null;
+const ORDER_STEPS = [["tort","Qaysi tortni xohlaysiz? (masalan: Safia bezatilgan dumaloq tort, Oreo cheesecake)"],["vazn","Necha kg yoki necha kishilik bo'lsin?"],["sana","Qaysi kuni va soat nechada olasiz?"],["yozuv","Tort ustiga yozuv kerakmi? Bo'lsa, matnini yozing (kerak bo'lmasa \"yo'q\")."],["olib_ketish","Qaysi filialdan olib ketasiz?"],["ism","Ismingiz?"],["telefon","Telefon raqamingiz?"]];
+function offlineReply(q){
+  const s = q.toLowerCase();
+  if(offlineOrder){
+    offlineOrder.data[ORDER_STEPS[offlineOrder.i][0]] = q; offlineOrder.i++;
+    if(offlineOrder.i < ORDER_STEPS.length) return ORDER_STEPS[offlineOrder.i][1];
+    const d = offlineOrder.data; offlineOrder = null; d.taxminiy_narx = "menejer aniqlaydi";
+    return "Rahmat! Buyurtmangiz tayyor 🎉\n[[ORDER]]" + JSON.stringify(d) + "[[/ORDER]]";
+  }
+  if(/buyurtma|заказ|order/.test(s)){ offlineOrder = {i:0, data:{}}; return "Albatta! Bir nechta savol beraman 📝\n" + ORDER_STEPS[0][1]; }
+  if(/keshbek|cashback|кешбэк|кэшбек|coin|ball|балл/.test(s)) return "🪙 **Keshbek:** har xariddan **3% gacha** qaytadi. Kassada ilovadagi QR-kodni skaner qildiring.\n- Ballar **365 kun** amal qiladi\n- Coins yig'ib sovg'aga almashtirasiz\n- Ro'yxatdan o'tsangiz, birinchi xaridda **bepul kofe** ☕";
+  if(/filial|manzil|qayer|chilonzor|yunusobod|адрес|филиал|branch|near/.test(s)) return "📍 Safia'ning **179 ta** filiali bor. Masalan, Chilonzorda:\n- **Novza** — Bunyodkor shoh ko'ch. 1A, 24 soat\n- **Gagarin** — Chilonzor ko'ch. 55, 08:00–24:00\n- **Pionerskaya** — 2-mavze 76, 24 soat\nTo'liq AI rejimda istalgan tumandan topib beraman.";
+  if(/tug'ilgan|tugilgan|tort|день рожд|торт|birthday|cake|maslahat/.test(s)) return "🎂 Tug'ilgan kun uchun tavsiya:\n- **Safia bezatilgan dumaloq tort** — 1 kg ≈ 6–8 kishi, taxminan 335 000 so'm\n- Kichik davra uchun — **Pink Bento**, taxminan 129 000 so'm\n- Cheesecake sevsa — **Oreo cheesecake**\nNecha kishi bo'lishini aytsangiz, vaznini hisoblab beraman.";
+  if(/narx|qancha|сколько|цена|price|чизкейк|cheesecake/.test(s)) return "💰 Ba'zi narxlar (taxminiy, aniq narx ilovada):\n- Oreo cheesecake — 330 000 so'm\n- Safia dumaloq tort 1 kg — 335 000 so'm\n- Pink Bento — 129 000 so'm\n- Chak-chak — 55 000 so'mdan";
+  return "Bu savolga to'liq javob berish uchun AI rejimini yoqing (⚙︎ → Gemini kaliti). Hozircha tort, filial, keshbek yoki buyurtma haqida so'rang 🙂";
+}
+
+async function send(text){
+  text = (text ?? txt.value).trim();
+  if(!text || busy) return;
+  txt.value = ""; autoGrow(); addMe(text);
+  busy = true; sendBtn.disabled = true; typing(true);
+  try{
+    let reply;
+    if(apiKey){
+      history.push({ role:"user", parts:[{ text }] });
+      reply = await askGemini();
+      history.push({ role:"model", parts:[{ text: reply }] });
+      if(history.length > 30) history = history.slice(-30);
+    } else {
+      await new Promise(r => setTimeout(r, 600));
+      reply = offlineReply(text);
+    }
+    typing(false); addBot(reply);
+  }catch(e){
+    if(history.length && history[history.length-1].role === "user") history.pop();
+    let msg = e.message || "Xatolik yuz berdi";
+    if(/load failed|failed to fetch|networkerror/i.test(msg)) msg = "Internetga ulanib bo'lmadi. Sahifa fayl ko'rish oynasida ochilgan bo'lsa, u tashqi so'rovlarni bloklaydi. Sahifani link orqali Safari'da oching.";
+    typing(false); addBot("⚠️ " + msg);
+  }
+  busy = false; sendBtn.disabled = false;
+}
+
+function autoGrow(){ txt.style.height = "auto"; txt.style.height = Math.min(txt.scrollHeight, 110) + "px"; }
+txt.addEventListener("input", autoGrow);
+txt.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
+sendBtn.onclick = () => send();
+setStatus();
+</script>
+</body>
+</html>
