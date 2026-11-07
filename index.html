@@ -362,7 +362,7 @@ function greet(){
 }
 
 /* ---------- Gemini (streaming, o'ylash rejimi o'chirilgan) ---------- */
-const THINK_OPTS = [{ thinkingBudget: 0 }, { thinkingLevel: "minimal" }, { thinkingLevel: "low" }, null];
+const THINK_OPTS = [{ thinkingBudget: 0 }, { thinkingLevel: "low" }, null];
 let cfg = null; try{ cfg = JSON.parse(store("safia_gemini_cfg") || "null"); }catch(e){}
 async function callModel(model, think, onText){
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`;
@@ -399,8 +399,9 @@ async function askGemini(onText){
         cfg = { model, think }; store("safia_gemini_cfg", JSON.stringify(cfg)); return out;
       }catch(e){
         last = e;
-        if(e.status === 400 && /think/i.test(e.message)) continue;   // bu model bu sozlamani qabul qilmadi
-        if(e.status === 404) break;                                     // model yo'q — keyingisi
+        if(e.status === 400 && /API key/i.test(e.message)) throw friendly(e);
+        if(e.status === 400) continue;   // bu model bu sozlamani qabul qilmadi — keyingisini sinaymiz
+        if(e.status === 404 || e.status === 403) break;                 // model yo'q — keyingisi
         throw friendly(e);
       }
     }
