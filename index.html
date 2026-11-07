@@ -362,17 +362,29 @@ function greet(){
 }
 
 /* ---------- Gemini (streaming, o'ylash rejimi o'chirilgan) ---------- */
-const THINK_OPTS = [{ thinkingBudget: 0 }, { thinkingLevel: "low" }, null];
+const THINK_OPTS = [{ thinkingBudget: 0 }, { thinkingLevel: "low" }, null, "minimal"];
 let cfg = null; try{ cfg = JSON.parse(store("safia_gemini_cfg") || "null"); }catch(e){}
 async function callModel(model, think, onText){
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`;
-  const gen = { temperature: 0.6, maxOutputTokens: 700 };
-  if(think) gen.thinkingConfig = think;
-  const r = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents: history, generationConfig: gen })});
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
+  let body;
+  if(think === "minimal"){   // eng sodda so'rov: tizim ko'rsatmasi birinchi xabarga qo'shiladi
+    const c = history.map(h => ({ role: h.role, parts: [{ text: h.parts[0].text }] }));
+    c[0].parts[0].text = SYSTEM_PROMPT + "\n\n---\nMijoz: " + c[0].parts[0].text;
+    body = { contents: c };
+  } else {
+    const gen = { temperature: 0.6, maxOutputTokens: 700 };
+    if(think) gen.thinkingConfig = think;
+    body = { systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents: history, generationConfig: gen };
+  }
+  const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json", "x-goog-api-key": apiKey.replace(/\s+/g,"") }, body: JSON.stringify(body) });
   if(!r.ok){
-    const e = await r.json().catch(() => ({}));
-    const err = new Error((e.error && e.error.message) || ("HTTP " + r.status)); err.status = r.status; throw err;
+    const raw = await r.text().catch(() => "");
+    let e = {}; try{ e = JSON.parse(raw); }catch(_){}
+    const er = Array.isArray(e) ? e[0]?.error : e.error;
+    let detail = "";
+    try{ detail = (er?.details || []).map(d => (d.fieldViolations || []).map(f => (f.field||"") + ": " + (f.description||"")).join("; ") || d.reason || "").filter(Boolean).join(" | "); }catch(_){}
+    const err = new Error(((er && er.message) || ("HTTP " + r.status)) + (detail ? " (" + detail + ")" : "") + " [" + model + "]");
+    err.status = r.status; throw err;
   }
   const reader = r.body.getReader(), dec = new TextDecoder(); let buf = "", full = "";
   while(true){
@@ -409,7 +421,7 @@ async function askGemini(onText){
   throw friendly(last);
 }
 function friendly(e){
-  if(e.status === 400 && /API key/i.test(e.message)) return new Error("API kalit noto'g'ri. ⚙︎ ni bosib tekshiring.");
+  if((e.status === 400 || e.status === 403) && /API key|API_KEY/i.test(e.message)) return new Error("API kalit noto'g'ri. ⚙︎ ni bosib tekshiring. Kalit AIza... bilan boshlanishi kerak.");
   if(e.status === 429) return new Error("Bepul limit tugadi, bir daqiqadan keyin urinib ko'ring.");
   return e;
 }
